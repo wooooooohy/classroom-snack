@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#fff6e8" />
+  <meta name="description" content="선생님 몰래 과자를 와작! 칠판 볼 때만 먹는 순발력 웹게임" />
+  <title>몰래 와작! | 수업 시간 과자 먹기</title>
+  <style>
+    :root {
+      --ink:#25354c; --muted:#788294; --cream:#fff6e8; --cream2:#ffedcd;
+      --coral:#f77569; --orange:#ffb45d; --mint:#48b997; --blue:#7d9ddc;
+      --panel:#fffefa; --dark:#23344e;
+    }
+    * {box-sizing:border-box}
+    html,body{margin:0;min-height:100%;-webkit-tap-highlight-color:transparent}
+    body{background:radial-gradient(circle at 12% 8%,#fff9f1 0,transparent 25%),radial-gradient(circle at 95% 95%,#ffe2d0 0,transparent 29%),#fff1df;color:var(--ink);font-family:ui-rounded,"Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;display:grid;place-items:center;padding:24px 14px 36px}
+    button{font:inherit;cursor:pointer}
+    button:focus-visible{outline:4px solid #65bcf0;outline-offset:3px}
+    .game-shell{width:min(100%,960px)}
+    .heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 8px 16px}
+    .brand{display:flex;align-items:center;gap:12px}
+    .brand-icon{width:58px;height:58px;border:3px solid var(--ink);border-radius:19px;background:#ffdb8f;display:grid;place-items:center;font-size:30px;box-shadow:3px 5px 0 var(--ink);transform:rotate(-6deg)}
+    h1{font-size:clamp(25px,4.2vw,36px);font-weight:950;margin:0;letter-spacing:-1.9px;line-height:1.16}
+    .heading p{margin:5px 0 0;font-size:13px;font-weight:750;color:#89909c;letter-spacing:-.3px}
+    .sound-btn{display:flex;align-items:center;justify-content:center;gap:6px;background:#fff;border:2px solid #e0e1df;border-radius:14px;padding:10px 12px;box-shadow:0 4px 0 #e7daca;font-size:13px;font-weight:900;min-width:86px;color:var(--ink)}
+    .scoreboard{display:grid;grid-template-columns:1fr 1fr 1fr 1.3fr;gap:10px;margin:0 0 15px}
+    .score-item{background:var(--panel);border:2px solid #eddfd0;border-radius:17px;padding:11px 16px;min-width:0;box-shadow:0 5px 0 #e6d7c8}
+    .score-label{display:block;color:var(--muted);font-size:11px;font-weight:900;margin-bottom:3px;letter-spacing:.15px}
+    .score-number{font-size:25px;font-weight:1000;letter-spacing:-1px;line-height:1.15;font-variant-numeric:tabular-nums}
+    .heart-number{color:#f76c76;letter-spacing:2px;white-space:nowrap;font-size:23px}
+    .play-card{background:var(--panel);border:3px solid var(--dark);border-radius:30px;padding:12px;box-shadow:0 9px 0 #2a384b, 0 16px 32px #9b6e4c25}
+    .classroom{position:relative;overflow:hidden;height:418px;border-radius:22px;border:2px solid #d8d4c2;background:repeating-linear-gradient(0deg,transparent 0 65px,#eddfce 66px 68px),linear-gradient(#fbedd8 0 68%,#edc99d 68% 100%);isolation:isolate}
+    .classroom:after{content:"";position:absolute;left:0;right:0;top:65%;height:9px;background:#dcb289;z-index:1}
+    .window{position:absolute;left:3.3%;top:12%;width:13%;height:36%;border:9px solid #fffdf2;border-radius:5px;background:#bcdfed;box-shadow:0 0 0 3px #c9bda6,3px 7px 0 #baa587;overflow:hidden}
+    .window:before{content:"";position:absolute;left:48%;top:0;bottom:0;width:6px;background:#fffef8}
+    .window:after{content:"";position:absolute;left:0;right:0;top:49%;height:6px;background:#fffef8}
+    .cloud{position:absolute;left:3%;top:25%;font-size:21px;opacity:.8}
+    .board{position:absolute;left:20%;top:10%;width:44%;height:52%;background:#31645a;border:10px solid #d7a86c;box-shadow:0 6px 0 #aa7748,3px 11px 0 #decab3;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;transform:rotate(-.5deg)}
+    .board .board-kicker{font-size:clamp(10px,1.7vw,14px);color:#d5f5dd;opacity:.9;letter-spacing:3px;font-weight:650}
+    .board strong{font-size:clamp(17px,3.8vw,30px);color:#f4ffe9;letter-spacing:1px;text-align:center;font-weight:800;text-shadow:0 2px 0 #26584e}
+    .board .underline{width:57%;height:3px;border-radius:9px;background:#b9eecf;opacity:.6;transform:rotate(-1deg)}
+    .board .little{font-size:clamp(10px,1.6vw,15px);color:#f8edbf;letter-spacing:.5px}
+    .chalk-tray{position:absolute;left:19%;top:63.2%;width:48%;height:10px;background:#bd945f;border-radius:3px;box-shadow:0 4px 0 #946943}
+    .chalk{position:absolute;left:33%;top:61.8%;height:6px;width:25px;background:#fff9dc;transform:rotate(-8deg);border-radius:3px}
+    .wall-clock{position:absolute;right:5.6%;top:8%;width:57px;height:57px;background:#fffdf1;border:5px solid #e6b977;border-radius:50%;box-shadow:2px 4px 0 #b6a68a}
+    .wall-clock:before{content:"";position:absolute;left:24px;top:9px;height:17px;width:3px;background:#444b5e;transform-origin:bottom;transform:rotate(-25deg);border-radius:3px}
+    .wall-clock:after{content:"";position:absolute;left:24px;top:24px;height:15px;width:3px;background:#444b5e;transform-origin:top;transform:rotate(75deg);border-radius:3px}
+    .poster{position:absolute;right:17.4%;top:22%;padding:7px 7px;font-size:11px;font-weight:950;color:#c27f66;background:#ffebbb;transform:rotate(8deg);border:2px solid #e6b981;border-radius:3px}
+    .status-wrap{position:absolute;top:14px;left:13px;z-index:13}
+    .status-pill{background:#e1f7e6;border:2px solid #3eaa84;color:#207655;display:flex;align-items:center;gap:7px;padding:9px 13px;border-radius:999px;box-shadow:0 4px 0 #318d6a22;font-size:14px;font-weight:950;transition:all .12s;max-width:280px}
+    .status-pill .dot{width:10px;height:10px;flex-shrink:0;border-radius:50%;background:#42ba91;box-shadow:0 0 0 3px #b8ead7}
+    .status-pill.warning{background:#fff1d3;border-color:#eeb653;color:#a5661d;animation:blink .55s infinite alternate}
+    .status-pill.warning .dot{background:#faad42;box-shadow:0 0 0 3px #ffddb0}
+    .status-pill.danger{background:#ffe1dd;border-color:#ee807a;color:#b14443}
+    .status-pill.danger .dot{background:#f26763;box-shadow:0 0 0 3px #ffc4bf}
+    @keyframes blink{to{filter:brightness(.93)}}
+    .speech{position:absolute;z-index:11;right:9%;top:34%;max-width:185px;background:white;border:3px solid #2c3c51;border-radius:18px;padding:10px 12px;text-align:center;font-size:13px;font-weight:900;line-height:1.36;box-shadow:3px 5px 0 #25354c26;transform:rotate(3deg)}
+    .speech:after{content:"";position:absolute;left:30%;bottom:-13px;width:17px;height:17px;background:white;border-right:3px solid #2c3c51;border-bottom:3px solid #2c3c51;transform:rotate(45deg)}
+    /* CSS-drawn teacher */
+    .teacher{position:absolute;width:155px;height:226px;left:64%;bottom:21%;z-index:6;transform-origin:center 95%;transition:transform .23s ease}
+    .teacher-shadow{position:absolute;width:115px;height:15px;left:23px;bottom:-6px;background:#a67e5577;border-radius:50%}
+    .teacher .hair-back{position:absolute;left:27px;top:20px;width:103px;height:110px;background:#554239;border:3px solid #303b4b;border-radius:47% 46% 28% 27%;z-index:1;transform:rotate(-4deg)}
+    .teacher .face{position:absolute;left:39px;top:25px;width:82px;height:98px;background:#f7c6a0;border:3px solid #303b4b;border-radius:47% 46% 45% 45%;z-index:4;transform-origin:60% 50%;transition:transform .25s}
+    .teacher .bang{position:absolute;top:-10px;left:-7px;width:90px;height:42px;border-radius:55% 65% 30% 16%;background:#554239;transform:rotate(-8deg)}
+    .teacher .bang:after{content:"";position:absolute;right:2px;top:23px;width:32px;height:15px;border-radius:0 0 80% 0;background:#554239;transform:rotate(18deg)}
+    .teacher .eye{position:absolute;top:43px;width:9px;height:12px;background:#3b4252;border-radius:50%;transition:opacity .15s}
+    .teacher .eye.left{left:20px}.teacher .eye.right{right:18px}
+    .teacher .blush{position:absolute;top:60px;left:10px;width:13px;height:6px;border-radius:50%;background:#f6a4a2;opacity:.75}
+    .teacher .blush.right{left:auto;right:8px}
+    .teacher .mouth{position:absolute;left:36px;top:66px;width:13px;height:6px;border-radius:0 0 13px 13px;background:#aa6660}
+    .teacher .neck{position:absolute;left:70px;top:115px;width:25px;height:30px;background:#f3b892;border:3px solid #303b4b;z-index:2}
+    .teacher .body{position:absolute;left:30px;top:135px;width:105px;height:90px;background:#a3c5ec;border:3px solid #303b4b;border-radius:24px 24px 7px 7px;z-index:3;overflow:hidden}
+    .teacher .body:before{content:"";position:absolute;left:39px;top:-14px;height:46px;width:28px;background:#fff4e9;border:2px solid #303b4b;transform:rotate(45deg);border-radius:3px}
+    .teacher .body:after{content:"";position:absolute;left:48px;top:37px;width:7px;height:7px;background:#48596c;border-radius:50%;box-shadow:0 19px 0 #48596c}
+    .teacher .arm{position:absolute;top:144px;width:28px;height:66px;background:#a3c5ec;border:3px solid #303b4b;border-radius:20px;z-index:3}
+    .teacher .arm.left{left:16px;transform:rotate(22deg)}
+    .teacher .arm.right{right:6px;transform:rotate(-24deg)}
+    .teacher .chalk-in-hand{position:absolute;right:1px;top:196px;width:22px;height:6px;background:#fff3c1;border:2px solid #5b7086;border-radius:6px;z-index:5;transform:rotate(42deg)}
+    .teacher.is-board{transform:translateX(-13px) rotate(-7deg)}
+    .teacher.is-board .face{transform:rotateY(63deg) translateX(13px)}
+    .teacher.is-board .eye,.teacher.is-board .mouth,.teacher.is-board .blush{opacity:0}
+    .teacher.is-warning{transform:rotate(-3deg)}
+    .teacher.is-warning .face{transform:rotateY(23deg)}
+    .teacher.is-watching{animation:teacherLook .3s ease}
+    @keyframes teacherLook{40%{transform:rotate(6deg)}}
+    .teacher.is-watching .eye{height:13px}
+    .teacher.is-watching .mouth{width:16px;height:11px;border-radius:50%;background:#8e4b4c;left:32px}
+    .teacher.is-warning .mouth{width:15px;background:#a25e5d}
+    .teacher.furious{animation:shake .35s 2}
+    @keyframes shake{25%{transform:translateX(-6px) rotate(-6deg)}75%{transform:translateX(6px) rotate(6deg)}}
+    .floor-tiles{position:absolute;bottom:0;height:29%;width:100%;background:repeating-linear-gradient(90deg,transparent 0 110px,#d8b58c 111px 113px),linear-gradient(#ebc698,#dcaf84);z-index:1}
+    .student{position:absolute;left:13%;bottom:11%;width:180px;height:147px;z-index:7;transform:rotate(-7deg);transition:transform .12s}
+    .student .torso{position:absolute;left:19px;bottom:-40px;width:160px;height:100px;border:3px solid #2d394d;border-radius:60px 60px 10px 10px;background:#fda9a0}
+    .student .neck{position:absolute;left:84px;top:80px;height:42px;width:40px;background:#f4bb96;border:3px solid #28394b}
+    .student .head{position:absolute;left:36px;top:0;width:117px;height:110px;background:#f5c7a5;border:3px solid #2c394c;border-radius:45% 46% 47% 44%;z-index:2;overflow:hidden}
+    .student .hair{position:absolute;left:-5px;top:-7px;width:126px;height:53px;background:#3f3f48;border-radius:55% 45% 65% 20%;transform:rotate(-8deg)}
+    .student .hair:after{content:"";position:absolute;left:4px;top:22px;width:42px;height:47px;background:#3f3f48;border-radius:0 0 50% 25%}
+    .student .eyes{position:absolute;left:38px;top:59px;width:37px;display:flex;justify-content:space-between}
+    .student .eyes:before,.student .eyes:after{content:"";width:5px;height:9px;border-radius:50%;background:#464251}
+    .student .mouth{position:absolute;left:54px;top:78px;width:16px;height:9px;background:#a86668;border-radius:2px 2px 50% 50%}
+    .student .blush{position:absolute;left:23px;top:74px;width:14px;height:6px;border-radius:50%;background:#f49a96;box-shadow:67px 0 0 #f49a96}
+    .student.eating{animation:nom .22s infinite alternate}
+    .student.eating .mouth{animation:chew .20s infinite alternate}
+    @keyframes nom{to{transform:rotate(-5deg) translateY(3px)}}
+    @keyframes chew{to{height:3px;top:82px}}
+    .desk{position:absolute;left:-3%;bottom:-35px;width:106%;height:120px;background:repeating-linear-gradient(0deg,#dca36d 0 18px,#e9b680 19px 24px);border:5px solid #98683b;border-radius:48% 48% 5px 5px / 27% 27% 5px 5px;z-index:9;box-shadow:0 -8px 0 #bf8452}
+    .desk .pencil{position:absolute;right:16%;top:33px;width:87px;height:8px;background:#ffc65a;border:2px solid #704e4e;transform:rotate(13deg);border-radius:7px}
+    .desk .book{position:absolute;right:13%;top:53px;width:120px;height:41px;background:#fff3db;border:3px solid #6f8ea6;border-radius:5px;transform:rotate(-8deg);box-shadow:0 5px 0 #7ba4c1}
+    .snack-bag{position:absolute;z-index:12;left:41%;bottom:1.8%;width:101px;height:116px;transform:rotate(9deg);filter:drop-shadow(4px 6px 0 #3f33242f)}
+    .snack-bag .bag-top{position:absolute;left:6%;top:4px;width:90%;height:25px;background:#ffd5b2;border:3px solid #c66460;clip-path:polygon(0 0,8% 20%,16% 0,25% 18%,35% 0,45% 17%,54% 0,62% 15%,70% 0,80% 20%,88% 0,100% 10%,100% 100%,0 100%)}
+    .snack-bag .bag-main{position:absolute;left:1%;bottom:0;width:99%;height:103px;background:linear-gradient(140deg,#ff9d6f,#f46769);border:3px solid #a84d54;border-radius:7px 9px 17px 14px;clip-path:polygon(5% 0,95% 0,100% 98%,4% 100%,0 43%);display:grid;place-items:center;align-content:center;gap:0}
+    .snack-bag .bag-main b{font-size:20px;line-height:1;transform:rotate(-8deg);color:#fffee9;text-shadow:2px 2px 0 #b94350}
+    .snack-bag .bag-main small{font-size:31px;line-height:1;margin-top:4px}
+    .snack-bag.eating{animation:rustle .18s infinite alternate}
+    @keyframes rustle{to{transform:rotate(0deg) translateY(-2px)}}
+    .crumb-layer{position:absolute;inset:0;z-index:16;pointer-events:none;overflow:hidden}
+    .crumb{position:absolute;bottom:20%;left:46%;font-size:23px;font-weight:1000;color:#ff9a56;text-shadow:2px 2px 0 #fff;animation:crumbFly .9s ease-out forwards;white-space:nowrap}
+    @keyframes crumbFly{0%{opacity:0;transform:translate(0,15px) scale(.6) rotate(-12deg)}18%{opacity:1}100%{opacity:0;transform:translate(var(--tx,30px),-110px) scale(1.05) rotate(14deg)}}
+    .scene-flash{position:absolute;inset:0;z-index:18;background:#f576704d;pointer-events:none;opacity:0}
+    .scene-flash.flash{animation:hit .42s ease}
+    @keyframes hit{30%{opacity:1}100%{opacity:0}}
+    .classroom.is-stunned{filter:saturate(.72)}
+    .scene-bottom-tip{position:absolute;right:13px;bottom:9px;z-index:15;background:#fffcf0ef;border-radius:11px;padding:6px 9px;font-size:11px;font-weight:850;color:#866b52;border:1px solid #e2cdb0}
+    .bottom-layout{display:grid;grid-template-columns:1fr 1.12fr;gap:16px;padding:16px 7px 7px;align-items:center}
+    .objective{padding:0 2px}
+    .objective-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:11px}
+    .objective-head strong{font-size:16px;font-weight:950}
+    .objective-head span{font-size:16px;font-weight:1000;color:#ed7762}
+    .progress-track{width:100%;height:17px;background:#f1e7da;border:2px solid #eadac7;border-radius:99px;overflow:hidden;box-shadow:inset 0 2px 2px #d6c9b7}
+    .progress-track .fill{height:100%;width:0;background:linear-gradient(90deg,#ffbd5c,#ff8866);border-radius:99px;transition:width .16s}
+    .guide{font-size:12px;color:#8b8d90;font-weight:770;margin:10px 0 0;line-height:1.5}
+    .eat-area{display:flex;flex-direction:column;gap:9px}
+    .eat-button{position:relative;isolation:isolate;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;display:flex;align-items:center;justify-content:center;gap:11px;border-radius:20px;background:linear-gradient(#ff9c7a,#f77669);border:3px solid #bb5a5b;box-shadow:0 7px 0 #b75559;color:#fffaf5;min-height:77px;padding:13px 12px;text-shadow:0 2px 0 #a8565b}
+    .eat-button .bite-icon{font-size:30px;filter:drop-shadow(0 2px 0 #c95e56)}
+    .eat-button .button-text{display:flex;flex-direction:column;align-items:flex-start;gap:1px}
+    .eat-button b{font-size:20px;font-weight:1000;letter-spacing:-.8px}
+    .eat-button small{font-size:11px;opacity:.94;font-weight:800}
+    .eat-button:active,.eat-button.pressed{transform:translateY(5px);box-shadow:0 2px 0 #b75559;background:linear-gradient(#f77b70,#ef665f)}
+    .eat-button:disabled{filter:grayscale(.45);opacity:.73;cursor:not-allowed;transform:none;box-shadow:0 7px 0 #9b8a83}
+    .chew-label{display:flex;align-items:center;gap:8px;font-size:11px;color:#879096;font-weight:850}
+    .chew-track{flex:1;height:8px;border-radius:15px;background:#eee8df;overflow:hidden}
+    .chew-fill{width:0%;height:100%;background:#65c9a2;border-radius:15px}
+    .footer{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;padding:16px 12px 0;color:#978b7e;font-size:12px;font-weight:750}
+    .footer a{color:#a56b57}
+    .restart-btn{background:transparent;border:1px solid #d9cabc;color:#a87865;padding:6px 10px;border-radius:9px;font-size:11px;font-weight:900}
+    /* Start/result overlays */
+    .overlay{position:absolute;inset:0;z-index:30;display:grid;place-items:center;background:#26364a9d;padding:14px;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+    .overlay[hidden]{display:none}
+    .modal{position:relative;text-align:center;width:min(100%,390px);background:#fffdf6;border:4px solid #30405a;border-radius:25px;padding:29px 24px 24px;box-shadow:7px 9px 0 #1e293c80;transform:rotate(-.4deg)}
+    .modal:before{content:"✦";position:absolute;font-size:38px;color:#ffd36d;top:-21px;left:16px;text-shadow:2px 2px #273448}
+    .modal:after{content:"✦";position:absolute;font-size:26px;color:#9ed9c1;top:25px;right:16px}
+    .modal .mascot{display:block;font-size:48px;margin-bottom:7px;filter:drop-shadow(2px 3px #f9d5ab)}
+    .modal h2{font-size:clamp(23px,5vw,31px);letter-spacing:-1.5px;line-height:1.27;margin:0 0 8px;font-weight:1000;color:#27374e}
+    .modal .subtitle{font-size:13px;color:#8d8e91;line-height:1.5;margin:0 0 18px;font-weight:750}
+    .rules{display:flex;flex-direction:column;gap:8px;text-align:left;background:#fff3df;border:2px dashed #efc6a1;border-radius:15px;padding:12px 16px;margin:0 0 19px;font-weight:850;font-size:13px;color:#6d6262}
+    .rules span{display:flex;align-items:center;gap:8px}
+    .modal .big-btn{width:100%;border:3px solid #c16e48;background:#ffb667;border-radius:14px;min-height:50px;color:#fff;box-shadow:0 5px 0 #b76c4a;text-shadow:0 2px 0 #bd6c48;font-size:18px;font-weight:1000}
+    .modal .big-btn:active{transform:translateY(4px);box-shadow:0 1px 0 #b76c4a}
+    .result-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:15px 0}
+    .result-stats div{background:#fff1df;border:2px solid #efd6b9;border-radius:13px;padding:11px 6px}
+    .result-stats small{display:block;color:#998679;font-size:11px;font-weight:900;margin-bottom:3px}
+    .result-stats strong{display:block;font-size:22px;font-weight:1000}
+    .star-row{font-size:37px;letter-spacing:5px;margin:5px 0}
+    .result-tip{font-size:12px;color:#9c8479;line-height:1.45;margin:0 0 13px;font-weight:800}
+    .toast{position:absolute;z-index:40;left:50%;top:30%;transform:translate(-50%,-50%);white-space:nowrap;font-weight:1000;font-size:23px;text-shadow:2px 3px #303c55;color:#fff4d8;animation:toast .8s ease forwards;pointer-events:none}
+    @keyframes toast{0%{opacity:0;transform:translate(-50%,-10%) scale(.8)}25%{opacity:1;transform:translate(-50%,-45%) scale(1.1)}100%{opacity:0;transform:translate(-50%,-100%) scale(.92)}}
+    @media(max-width:660px){
+      body{display:block;padding:13px 10px 24px}
+      .heading{margin:5px 2px 13px}
+      .brand{gap:10px}
+      .brand-icon{width:46px;height:46px;font-size:26px;border-radius:15px}
+      .heading p{font-size:10px;margin-top:4px}
+      .sound-btn{font-size:11px;padding:8px;min-width:70px}
+      .scoreboard{gap:6px;margin-bottom:12px}
+      .score-item{padding:9px 7px;border-radius:12px;text-align:center}
+      .score-label{font-size:10px}
+      .score-number{font-size:20px}
+      .heart-number{font-size:17px;letter-spacing:0}
+      .play-card{border-radius:21px;padding:6px;border-width:2px;box-shadow:0 6px 0 #2a384b}
+      .classroom{height:clamp(330px,90vw,405px);border-radius:15px}
+      .status-wrap{top:10px;left:8px}
+      .status-pill{font-size:12px;padding:7px 9px;gap:6px}
+      .status-pill .dot{width:8px;height:8px}
+      .board{left:18%;width:45%;top:14%;height:43%;border-width:7px}
+      .board .board-kicker{letter-spacing:1.4px}
+      .wall-clock{right:6%;top:10%;width:40px;height:40px;border-width:4px}
+      .wall-clock:before{left:15px;top:4px;height:13px}
+      .wall-clock:after{left:15px;top:15px;height:10px}
+      .poster{right:2%;top:25%;font-size:9px}
+      .teacher{left:57%;bottom:19%;transform:scale(.82);transform-origin:bottom left}
+      .teacher.is-board{transform:scale(.82) translateX(-8px) rotate(-7deg)}
+      .teacher.is-warning{transform:scale(.82) rotate(-3deg)}
+      .speech{right:5%;top:39%;max-width:137px;padding:7px 8px;font-size:10px;border-width:2px}
+      .speech:after{border-width:2px;bottom:-10px;width:12px;height:12px}
+      .student{left:5%;bottom:10%;transform:scale(.79) rotate(-7deg);transform-origin:left bottom}
+      .student.eating{animation:nomMobile .22s infinite alternate}
+      @keyframes nomMobile{to{transform:scale(.79) rotate(-6deg) translateY(3px)}}
+      .snack-bag{left:43%;bottom:2%;transform:scale(.76) rotate(9deg);transform-origin:bottom left}
+      .snack-bag.eating{animation:rustleMobile .18s infinite alternate}
+      @keyframes rustleMobile{to{transform:scale(.76) rotate(0deg) translateY(-2px)}}
+      .desk{height:105px}
+      .desk .book{width:81px;right:4%}
+      .desk .pencil{right:3%;width:60px}
+      .scene-bottom-tip{font-size:9px;right:5px;bottom:6px;padding:4px 6px}
+      .modal{padding:17px 15px 16px;border-width:3px;border-radius:21px}
+      .modal .mascot{font-size:32px;margin-bottom:3px}
+      .modal h2{font-size:22px;margin-bottom:5px}
+      .modal .subtitle{font-size:12px;margin-bottom:11px}
+      .rules{font-size:12px;padding:9px 10px;gap:5px;margin-bottom:12px}
+      .modal .big-btn{min-height:46px;font-size:16px}
+      .result-stats{margin:9px 0}
+      .bottom-layout{grid-template-columns:1fr;padding:14px 8px 7px;gap:14px}
+      .guide{margin-top:7px}
+      .eat-button{min-height:76px}
+      .footer{padding:16px 5px 0;font-size:11px}
+    }
+    @media(max-width:380px){
+      .brand-icon{width:40px;height:40px;font-size:21px}
+      h1{font-size:24px}
+      .heart-number{font-size:15px}
+      .status-pill{font-size:11px}
+      .speech{right:3%;top:39%}
+      .teacher{left:55%}
+      .student{left:1%}
+    }
+    @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+  </style>
+</head>
+<body>
+  <main class="game-shell" aria-label="몰래 와작! 게임">
+    <header class="heading">
+      <div class="brand"><div class="brand-icon" aria-hidden="true">🍪</div><div><h1>몰래 와작!</h1><p>수업 시간 과자 먹기 대작전</p></div></div>
+      <button class="sound-btn" id="soundBtn" type="button" aria-label="효과음 켜기 또는 끄기">🔊 소리 ON</button>
+    </header>
+    <section class="scoreboard" aria-label="게임 현황">
+      <div class="score-item"><span class="score-label">현재 점수</span><strong class="score-number" id="score">0</strong></div>
+      <div class="score-item"><span class="score-label">최고 점수</span><strong class="score-number" id="best">0</strong></div>
+      <div class="score-item"><span class="score-label">남은 시간</span><strong class="score-number" id="timer">45.0</strong></div>
+      <div class="score-item"><span class="score-label">들키기 전 기회</span><strong class="score-number heart-number" id="hearts" aria-label="남은 목숨 3개">♥ ♥ ♥</strong></div>
+    </section>
+    <section class="play-card" aria-label="교실 게임 화면">
+      <div class="classroom" id="classroom">
+        <div class="window" aria-hidden="true"><span class="cloud">☁</span></div>
+        <div class="board" aria-hidden="true"><span class="board-kicker">오늘의 수업</span><strong>집중해서 공부하기!</strong><div class="underline"></div><span class="little">쉿! 수업 중 🤫</span></div>
+        <div class="chalk-tray" aria-hidden="true"></div><div class="chalk" aria-hidden="true"></div>
+        <div class="wall-clock" aria-hidden="true"></div><div class="poster" aria-hidden="true">교실은 조용히 ✦</div>
+        <div class="status-wrap"><div class="status-pill safe" id="statusPill" role="status" aria-live="polite"><span class="dot"></span><span id="statusText">선생님이 칠판 보는 중</span></div></div>
+        <div class="speech" id="speech" aria-live="off">다들 칠판 보세요~</div>
+        <div class="teacher is-board" id="teacher" aria-label="선생님">
+          <div class="teacher-shadow"></div><div class="hair-back"></div><div class="neck"></div>
+          <div class="arm left"></div><div class="arm right"></div><div class="body"></div>
+          <div class="face"><div class="bang"></div><div class="eye left"></div><div class="eye right"></div><div class="blush"></div><div class="blush right"></div><div class="mouth"></div></div>
+          <div class="chalk-in-hand"></div>
+        </div>
+        <div class="floor-tiles" aria-hidden="true"></div>
+        <div class="student" id="student" aria-label="과자를 먹는 학생"><div class="torso"></div><div class="neck"></div><div class="head"><div class="hair"></div><div class="eyes"></div><div class="blush"></div><div class="mouth"></div></div></div>
+        <div class="desk" aria-hidden="true"><div class="pencil"></div><div class="book"></div></div>
+        <div class="snack-bag" id="snackBag" aria-label="과자 봉지"><div class="bag-top"></div><div class="bag-main"><b>와작!</b><small>🍘</small></div></div>
+        <div class="crumb-layer" id="crumbLayer" aria-hidden="true"></div><div class="scene-flash" id="sceneFlash"></div>
+        <div class="scene-bottom-tip" id="tip">선생님 시선을 잘 보세요! 👀</div>
+        <div class="overlay" id="overlay">
+          <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+            <span class="mascot" id="modalMascot">🤫🍪</span>
+            <h2 id="modalTitle">수업 시간, 몰래 과자 먹기!</h2>
+            <p class="subtitle" id="modalSubtitle">선생님이 보지 않을 때만 와작와작!</p>
+            <div class="rules" id="modalRules"><span>🟢 칠판 볼 때 → 버튼 꾹 누르기</span><span>🟡 뒤돌아볼 때 → 바로 손 떼기!</span><span>🔴 3번 들키기 전에 과자 25개 먹기</span></div>
+            <div id="resultExtra"></div>
+            <button class="big-btn" id="startBtn" type="button">게임 시작하기 ▶</button>
+          </div>
+        </div>
+      </div>
+      <div class="bottom-layout">
+        <div class="objective"><div class="objective-head"><strong>🍘 몰래 먹은 과자</strong><span id="biteCount">0 / 25</span></div><div class="progress-track" role="progressbar" aria-label="먹은 과자 개수" aria-valuemin="0" aria-valuemax="25" aria-valuenow="0" id="goalProgress"><div class="fill" id="goalFill"></div></div><p class="guide" id="guide">선생님이 칠판 볼 때 버튼을 누르고, 뒤돌아보면 떼세요!</p></div>
+        <div class="eat-area"><button class="eat-button" id="eatBtn" type="button" disabled aria-label="누르고 있는 동안 몰래 과자 먹기"><span class="bite-icon" aria-hidden="true">🍪</span><span class="button-text"><b>꾹 누르고 와작!</b><small>휴대폰은 길게 누르기 · PC는 스페이스바</small></span></button><div class="chew-label"><span>다음 한 입까지</span><div class="chew-track"><div class="chew-fill" id="chewFill"></div></div></div></div>
+      </div>
+    </section>
+    <footer class="footer"><span>TIP: 노란색 경고가 뜨면 바로 멈추기! 👀</span><button class="restart-btn" id="restartBtn" type="button">↻ 처음부터</button></footer>
+  </main>
+  <script>
+    'use strict';
+    (() => {
+      const $ = id => document.getElementById(id);
+      const el = {
+        classroom:$('classroom'), score:$('score'), best:$('best'), timer:$('timer'), hearts:$('hearts'),
+        teacher:$('teacher'), statusPill:$('statusPill'), statusText:$('statusText'), speech:$('speech'),
+        student:$('student'), snackBag:$('snackBag'), crumbLayer:$('crumbLayer'), sceneFlash:$('sceneFlash'),
+        tip:$('tip'), biteCount:$('biteCount'), goalFill:$('goalFill'), goalProgress:$('goalProgress'),
+        guide:$('guide'), eatBtn:$('eatBtn'), chewFill:$('chewFill'), soundBtn:$('soundBtn'),
+        overlay:$('overlay'), modalTitle:$('modalTitle'), modalMascot:$('modalMascot'),
+        modalSubtitle:$('modalSubtitle'), modalRules:$('modalRules'), resultExtra:$('resultExtra'),
+        startBtn:$('startBtn'), restartBtn:$('restartBtn')
+      };
+      const GAME_SECONDS = 45;
+      const GOAL = 25;
+      const BITE_TIME = 520; // ms to eat one snack
+      let audioCtx = null;
+      let soundOn = true;
+      let frameId = null;
+      let pointerHeld = false;
+      let keyboardHeld = false;
+      let best = 0;
+      try { best = Number(localStorage.getItem('secretSnackBest') || 0) || 0; } catch (_err) {}
+      const game = {
+        running:false, phase:'board', phaseRemaining:0, seconds:GAME_SECONDS,
+        score:0, bites:0, hearts:3, combo:0, chewMs:0,
+        eating:false, stunRemaining:0, timeStarted:0, lastFrame:0,
+        dangerCaught:false, lastVoice:0
+      };
+      el.best.textContent = best.toLocaleString('ko-KR');
+      const rand = (a,b) => a + Math.random() * (b - a);
+      const dur = phase => phase === 'board' ? rand(Math.max(2050,3700-game.bites*28),Math.max(3000,4850-game.bites*31)) :
+        phase === 'warning' ? rand(600,850) : rand(1250,2000);
+      const phaseLabels = {
+        board:['선생님이 칠판 보는 중','다들 칠판 보세요~','안전! 지금 먹자 🍪'],
+        warning:['앗! 고개 돌리는 중!','어디서 바스락 소리가…?','위험! 버튼에서 손 떼!'],
+        watch:['선생님이 지켜보는 중!','지금 뭐 먹는 사람 있어?','잠깐! 선생님이 보고 있어 👀']
+      };
+      function beep(frequency, duration=.08, volume=.05, shape='sine') {
+        if (!soundOn) return;
+        try {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (!AudioContextClass) return;
+          if (!audioCtx) audioCtx = new AudioContextClass();
+          if (audioCtx.state==='suspended') audioCtx.resume().catch(()=>{});
+          const now = audioCtx.currentTime;
+          const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+          osc.type = shape; osc.frequency.setValueAtTime(frequency,now);
+          osc.frequency.exponentialRampToValueAtTime(Math.max(60,frequency*.74),now+duration);
+          gain.gain.setValueAtTime(volume,now); gain.gain.exponentialRampToValueAtTime(.0001,now+duration);
+          osc.connect(gain);gain.connect(audioCtx.destination);osc.start(now);osc.stop(now+duration+.01);
+        } catch(_err){}
+      }
+      function sound(kind){
+        if(kind==='bite'){beep(280,.055,.045,'triangle');setTimeout(()=>beep(430,.065,.03,'square'),42);}
+        if(kind==='warning'){beep(540,.09,.045,'sine');}
+        if(kind==='caught'){beep(225,.16,.065,'sawtooth');setTimeout(()=>beep(140,.18,.055,'sawtooth'),110);}
+        if(kind==='win'){[520,660,790,1060].forEach((f,i)=>setTimeout(()=>beep(f,.15,.055,'triangle'),i*110));}
+      }
+      function updateHUD(){
+        el.score.textContent=game.score.toLocaleString('ko-KR');
+        el.timer.textContent=Math.max(0,game.seconds).toFixed(1);
+        el.hearts.textContent='♥ '.repeat(game.hearts).trim()+' ♡'.repeat(3-game.hearts);
+        el.hearts.setAttribute('aria-label',`남은 목숨 ${game.hearts}개`);
+        el.biteCount.textContent=`${game.bites} / ${GOAL}`;
+        el.goalFill.style.width=`${Math.min(100,game.bites/GOAL*100)}%`;
+        el.goalProgress.setAttribute('aria-valuenow',String(game.bites));
+        el.chewFill.style.width=`${Math.min(100,game.chewMs/BITE_TIME*100)}%`;
+      }
+      function updatePhaseView(){
+        el.teacher.classList.remove('is-board','is-warning','is-watching');
+        el.teacher.classList.add(game.phase==='board'?'is-board':game.phase==='warning'?'is-warning':'is-watching');
+        el.statusPill.classList.remove('safe','warning','danger');
+        el.statusPill.classList.add(game.phase==='board'?'safe':game.phase==='warning'?'warning':'danger');
+        const [status,voice,tip]=phaseLabels[game.phase];
+        el.statusText.textContent=status;
+        el.speech.textContent=voice;
+        el.tip.textContent=tip;
+      }
+      function changePhase(next){
+        game.phase=next;game.phaseRemaining=dur(next);game.dangerCaught=false;
+        updatePhaseView();
+        if(next==='warning')sound('warning');
+        if(next==='watch' && game.eating && game.stunRemaining<=0) caught();
+      }
+      function pop(text,x=null,y=null,kind='crumb'){
+        const node=document.createElement('div');
+        node.className=kind==='toast'?'toast':'crumb';
+        node.textContent=text;
+        if(kind!=='toast'){
+          node.style.left=`${x===null?rand(38,52):x}%`;
+          node.style.bottom=`${y===null?rand(13,23):y}%`;
+          node.style.setProperty('--tx',`${rand(-65,70)}px`);
+        }
+        el.crumbLayer.appendChild(node);
+        setTimeout(()=>node.remove(),1000);
+      }
+      function caught(){
+        if(!game.running||game.stunRemaining>0||game.dangerCaught)return;
+        game.dangerCaught=true;
+        game.hearts=Math.max(0,game.hearts-1);game.combo=0;game.chewMs=0;
+        game.stunRemaining=1050;
+        pointerHeld=false;keyboardHeld=false;
+        setEating(false);
+        el.classroom.classList.add('is-stunned');
+        el.sceneFlash.classList.remove('flash'); void el.sceneFlash.offsetWidth; el.sceneFlash.classList.add('flash');
+        el.teacher.classList.add('furious');
+        el.speech.textContent='거기! 지금 과자 먹었지?!';
+        el.guide.textContent='앗, 들켰어! 잠깐 멈추고 다시 도전!';
+        pop('😱 들켰다!',null,null,'toast');
+        sound('caught');
+        updateHUD();
+        if(game.hearts<=0){endGame(false,'caught');}
+      }
+      function setEating(on){
+        const actually=!!(on&&game.running&&game.stunRemaining<=0);
+        if(game.eating===actually)return;
+        game.eating=actually;
+        el.eatBtn.classList.toggle('pressed',actually);
+        el.student.classList.toggle('eating',actually);
+        el.snackBag.classList.toggle('eating',actually);
+        if(actually && game.phase==='watch') caught();
+      }
+      function syncHold(){setEating(pointerHeld||keyboardHeld);}
+      function bite(){
+        if(!game.running)return;
+        if(game.phase==='watch'){caught();return;}
+        game.bites++;game.combo++;
+        const gained=10+Math.min(10,game.combo)*2;
+        game.score+=gained;
+        el.guide.textContent=game.combo>=5?`🔥 ${game.combo}연속 와작! 지금 흐름 좋아!`:`냠냠! ${gained}점 획득 😋`;
+        pop(Math.random()>.55?'🍪':'🥨',rand(42,48),rand(20,26));
+        pop(`+${gained}`,rand(40,55),rand(15,25));
+        sound('bite');
+        updateHUD();
+        if(game.bites>=GOAL)endGame(true,'goal');
+      }
+      function tick(now){
+        if(!game.running)return;
+        const delta=Math.min(100,Math.max(0,now-game.lastFrame));
+        game.lastFrame=now;
+        game.seconds-=delta/1000;
+        if(game.seconds<=0){game.seconds=0;updateHUD();endGame(false,'time');return;}
+        if(game.stunRemaining>0){
+          game.stunRemaining-=delta;
+          if(game.stunRemaining<=0){
+            el.classroom.classList.remove('is-stunned');
+            el.teacher.classList.remove('furious');
+            el.guide.textContent='다시 기회를 노려봐! 선생님 시선을 잘 확인해 👀';
+          }
+        }
+        game.phaseRemaining-=delta;
+        if(game.phaseRemaining<=0){
+          changePhase(game.phase==='board'?'warning':game.phase==='warning'?'watch':'board');
+        }
+        if(game.eating && game.stunRemaining<=0){
+          if(game.phase==='board'||game.phase==='warning'){
+            game.chewMs+=delta;
+            if(game.chewMs>=BITE_TIME){game.chewMs-=BITE_TIME;bite();}
+          }else{caught();}
+        }
+        updateHUD();
+        frameId=requestAnimationFrame(tick);
+      }
+      function startGame(){
+        if(frameId!==null){cancelAnimationFrame(frameId);frameId=null;}
+        Object.assign(game,{running:true,phase:'board',phaseRemaining:dur('board'),seconds:GAME_SECONDS,
+          score:0,bites:0,hearts:3,combo:0,chewMs:0,eating:false,stunRemaining:0,dangerCaught:false,lastFrame:performance.now()});
+        pointerHeld=false;keyboardHeld=false;
+        el.overlay.hidden=true;el.eatBtn.disabled=false;
+        el.student.classList.remove('eating');el.snackBag.classList.remove('eating');el.eatBtn.classList.remove('pressed');
+        el.classroom.classList.remove('is-stunned');el.teacher.classList.remove('furious');
+        el.crumbLayer.textContent='';el.guide.textContent='선생님이 칠판 볼 때 버튼을 누르고, 뒤돌아보면 떼세요!';
+        updatePhaseView();updateHUD();
+        frameId=requestAnimationFrame(tick);
+      }
+      function endGame(won,why){
+        if(!game.running)return;
+        game.running=false;
+        pointerHeld=false;keyboardHeld=false;
+        setEating(false);el.eatBtn.disabled=true;
+        if(frameId!==null){cancelAnimationFrame(frameId);frameId=null;}
+        if(game.score>best){best=game.score;try{localStorage.setItem('secretSnackBest',String(best));}catch(_err){}}
+        el.best.textContent=best.toLocaleString('ko-KR');
+        updateHUD();
+        const stars=won?(game.hearts===3?3:game.hearts===2?2:1):game.bites>=15?1:0;
+        el.modalMascot.textContent=won?'🎉🍪':why==='caught'?'😳🍘':'⏰🍪';
+        el.modalTitle.textContent=won?'성공! 교실 먹방 마스터!':why==='caught'?'앗! 선생님께 딱 걸렸어!':'딩동댕! 수업 끝!';
+        el.modalSubtitle.textContent=won?'와작와작, 들키지 않고 목표 달성!':why==='caught'?'세 번 들키면 게임 오버! 다음엔 더 조심해.':'시간 안에 과자 25개를 먹어야 해!';
+        el.modalRules.hidden=true;
+        el.resultExtra.innerHTML=`<div class="star-row" aria-label="별 ${stars}개">${'⭐'.repeat(stars)}${'☆'.repeat(3-stars)}</div><div class="result-stats"><div><small>최종 점수</small><strong>${game.score.toLocaleString('ko-KR')}점</strong></div><div><small>먹은 과자</small><strong>${game.bites} / ${GOAL}개</strong></div></div><p class="result-tip">${won?'선생님 눈을 완벽하게 피했어! 🤫':game.bites>=15?'조금만 더! 경고 표시가 뜨면 바로 손을 떼 봐.':'칠판을 볼 때만 꾹 누르면 점수를 올릴 수 있어!'}</p>`;
+        el.startBtn.textContent='다시 도전하기 ↻';
+        el.overlay.hidden=false;
+        if(won)sound('win');
+      }
+      el.startBtn.addEventListener('click',startGame);
+      el.restartBtn.addEventListener('click',()=>{
+        if(game.running){
+          game.running=false;
+          if(frameId!==null){cancelAnimationFrame(frameId);frameId=null;}
+        }
+        startGame();
+      });
+      el.eatBtn.addEventListener('pointerdown',event=>{
+        if(!game.running)return;
+        if(event.pointerType==='mouse'&&event.button!==0)return;
+        event.preventDefault();
+        try{el.eatBtn.setPointerCapture(event.pointerId);}catch(_err){}
+        pointerHeld=true;syncHold();
+      });
+      const releasePointer=()=>{pointerHeld=false;syncHold();};
+      el.eatBtn.addEventListener('pointerup',releasePointer);
+      el.eatBtn.addEventListener('pointercancel',releasePointer);
+      el.eatBtn.addEventListener('lostpointercapture',releasePointer);
+      window.addEventListener('pointerup',releasePointer);
+      window.addEventListener('blur',()=>{pointerHeld=false;keyboardHeld=false;syncHold();});
+      document.addEventListener('visibilitychange',()=>{
+        if(document.hidden){pointerHeld=false;keyboardHeld=false;syncHold();}
+      });
+      window.addEventListener('keydown',event=>{
+        if(event.code!=='Space'||event.repeat||!game.running)return;
+        event.preventDefault();keyboardHeld=true;syncHold();
+      });
+      window.addEventListener('keyup',event=>{
+        if(event.code!=='Space')return;
+        if(game.running)event.preventDefault();
+        keyboardHeld=false;syncHold();
+      });
+      el.soundBtn.addEventListener('click',()=>{
+        soundOn=!soundOn;el.soundBtn.textContent=soundOn?'🔊 소리 ON':'🔇 소리 OFF';
+        el.soundBtn.setAttribute('aria-pressed',String(soundOn));
+        if(soundOn)beep(620,.075,.03);
+      });
+      el.soundBtn.setAttribute('aria-pressed','true');
+      updateHUD();
+    })();
+  </script>
+</body>
+</html>
